@@ -1,0 +1,38 @@
+{
+  "name": "qa-support-bot",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@langchain/community": "^1.1.10",
+    "@langchain/core": "^1.1.18",
+    "@langchain/google-genai": "^2.1.14",
+    "@langchain/pinecone": "^1.0.1",
+    "@pinecone-database/pinecone": "^5.0.2",
+    "axios": "^1.13.4",
+    "cheerio": "^1.2.0",
+    "langchain": "^1.2.16",
+    "lucide-react": "^0.563.0",
+    "next": "15.4.8",
+    "playwright": "^1.58.1",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "sonner": "^2.0.7"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "15.4.8",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
