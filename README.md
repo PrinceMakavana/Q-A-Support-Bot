@@ -3,8 +3,9 @@
 A support chatbot built with **Retrieval Augmented Generation (RAG)**. Crawl a website, ingest its content into a vector store, then ask questions and get answers grounded in that knowledge.
 
 ## Demo
+[Screencast from 31-01-26 04:29:56 PM IST.webm](https://github.com/user-attachments/assets/737173c2-f122-4cb1-bd3e-5094b93351e2)
 
-<video src="https://github.com/PrinceMakavana/Q-A-Support-Bot/raw/main/demo.webm" controls width="100%"></video>
+<!-- <video src="https://github.com/PrinceMakavana/Q-A-Support-Bot/raw/main/demo.webm" controls width="100%"></video> -->
 
 ## Tech Stack
 
