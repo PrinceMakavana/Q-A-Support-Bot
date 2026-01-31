@@ -1,0 +1,78 @@
+@import "tailwindcss";
+
+:root {
+  --background: #030303;
+  --foreground: #ffffff;
+  --accent: #ff4d00;
+  --accent-muted: #ff4d0022;
+  --card-bg: #0a0a0a;
+  --border-color: #1f1f1f;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-accent: var(--accent);
+  --color-accent-muted: var(--accent-muted);
+  --color-card: var(--card-bg);
+  --color-border-subtle: var(--border-color);
+  --font-sans: "Inter", var(--font-geist-sans), sans-serif;
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+}
+
+.grid-bg {
+  background-image: radial-gradient(circle at 1px 1px, #1f1f1f 1px, transparent 0);
+  background-size: 40px 40px;
+}
+
+.glow-effect {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, var(--accent-muted) 0%, transparent 70%);
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.glass {
+  background: rgba(10, 10, 10, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border-color);
+}
+
+/* Theme scrollbar - dark track, accent thumb */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:active {
+  background: var(--accent);
+}
