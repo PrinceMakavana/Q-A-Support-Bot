@@ -3,6 +3,8 @@ import { Pinecone } from "@pinecone-database/pinecone";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { PineconeStore } from "@langchain/pinecone";
 import { queryEmbeddings } from "@/lib/embeddings";
+import { configDotenv } from "dotenv";
+configDotenv();
 
 const pinecone = new Pinecone({
   apiKey: process.env.PINECONE_API_KEY!,

@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { chromium } from "playwright";
+import { configDotenv } from "dotenv";
+configDotenv();
 
 /** Fetches a URL and returns its body as text, or null on failure. */
 async function fetchUrlText(url: string): Promise<string | null> {

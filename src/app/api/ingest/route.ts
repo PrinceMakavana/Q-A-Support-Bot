@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { ingestContent } from "@/lib/vector-store";
+import { configDotenv } from "dotenv";
+configDotenv();
 
 export async function POST(req: Request) {
   try {
