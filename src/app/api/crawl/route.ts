@@ -3,38 +3,6 @@ import { chromium } from "playwright";
 import { configDotenv } from "dotenv";
 configDotenv();
 
-/** Fetches a URL and returns its body as text, or null on failure. */
-async function fetchUrlText(url: string): Promise<string | null> {
-  try {
-    const res = await fetch(url, { method: "GET" });
-    if (!res.ok) return null;
-    return await res.text();
-  } catch {
-    return null;
-  }
-}
-
-async function crawlWithJS(url: string) {
-  const browser = await chromium.launch();
-  const page = await browser.newPage();
-
-  await page.goto(url, { waitUntil: "networkidle" });
-
-  const text = await page.evaluate(() => {
-    return document.body.innerText;
-  });
-
-  
- 
-
-  const title = await page.evaluate(() => {
-    return document.title;
-  });
-
-  await browser.close();
-  return { text, title };
-}
-
 export async function POST(req: Request) {
   try {
     const { url } = await req.json();
@@ -42,6 +10,35 @@ export async function POST(req: Request) {
     if (!url) {
       console.error("[CRAWL] Error: URL is required");
       return NextResponse.json({ error: "URL is required" }, { status: 400 });
+    }
+
+    /** Fetches a URL and returns its body as text, or null on failure. */
+    async function fetchUrlText(url: string): Promise<string | null> {
+      try {
+        const res = await fetch(url, { method: "GET" });
+        if (!res.ok) return null;
+        return await res.text();
+      } catch {
+        return null;
+      }
+    }
+
+    async function crawlWithJS(url: string) {
+      const browser = await chromium.launch();
+      const page = await browser.newPage();
+
+      await page.goto(url, { waitUntil: "networkidle" });
+
+      const text = await page.evaluate(() => {
+        return document.body.innerText;
+      });
+
+      const title = await page.evaluate(() => {
+        return document.title;
+      });
+
+      await browser.close();
+      return { text, title };
     }
 
     console.log(`[CRAWL] Starting crawl for: ${url}`);
@@ -53,13 +50,12 @@ export async function POST(req: Request) {
     console.log(`[CRAWL] Derived LLM TXT URL: ${llmTxtUrl}`);
 
     // Main page with Playwright + sitemap and llm.txt in parallel (fetch only)
-    console.log("[CRAWL] Triggering parallel fetch for page content, sitemap, and llm.txt...");
+    console.log(
+      "[CRAWL] Triggering parallel fetch for page content, sitemap, and llm.txt...",
+    );
     const [pageResult, settled] = await Promise.all([
       crawlWithJS(url),
-      Promise.allSettled([
-        fetchUrlText(sitemapUrl),
-        fetchUrlText(llmTxtUrl),
-      ]),
+      Promise.allSettled([fetchUrlText(sitemapUrl), fetchUrlText(llmTxtUrl)]),
     ]);
     console.log("[CRAWL] Parallel fetch completed.");
 
@@ -82,10 +78,7 @@ export async function POST(req: Request) {
     }
 
     // Clean up whitespace
-    const cleanedText = text
-      .replace(/\s+/g, " ")
-      .replace(/\n+/g, " ")
-      .trim();
+    const cleanedText = text.replace(/\s+/g, " ").replace(/\n+/g, " ").trim();
 
     const payload: Record<string, unknown> = {
       url,
@@ -96,14 +89,16 @@ export async function POST(req: Request) {
     if (sitemap != null && sitemap.trim() !== "") payload.sitemap = sitemap;
     if (llm != null && llm.trim() !== "") payload.llm = llm;
 
-    console.log(`[CRAWL] Successfully prepared payload for ${url} (${cleanedText.length} chars)`);
+    console.log(
+      `[CRAWL] Successfully prepared payload for ${url} (${cleanedText.length} chars)`,
+    );
     return NextResponse.json(payload);
   } catch (error: unknown) {
     console.error("Crawl error:", error);
     const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
       { error: "Failed to crawl the website", details: message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
