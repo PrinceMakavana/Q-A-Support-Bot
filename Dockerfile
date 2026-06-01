@@ -1,5 +1,6 @@
-# Use an official Node.js runtime as a parent image
-FROM node:20-alpine
+# Use Playwright's official Node image so Chromium and its Linux dependencies
+# are available at runtime for the crawl API.
+FROM mcr.microsoft.com/playwright:v1.60.0-noble
 
 # Set the working directory in the container
 WORKDIR /app
