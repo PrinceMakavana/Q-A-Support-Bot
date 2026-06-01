@@ -1,9 +1,8 @@
 import { Pinecone } from "@pinecone-database/pinecone";
-import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
-import { TaskType } from "@google/generative-ai";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { Document } from "@langchain/core/documents";
 import { PineconeStore } from "@langchain/pinecone";
+import { documentEmbeddings, EMBEDDING_MODEL } from "@/lib/embeddings";
 
 /** Pinecone metadata size limit per vector (40 KB). Use a safe value to leave headroom. */
 const PINECONE_METADATA_LIMIT_BYTES = 40000;
@@ -68,12 +67,6 @@ const pinecone = new Pinecone({
 
 const index = pinecone.Index(process.env.PINECONE_INDEX!);
 
-const embeddings = new GoogleGenerativeAIEmbeddings({
-  apiKey: process.env.GOOGLE_API_KEY!,
-  modelName: "text-embedding-004",
-  taskType: TaskType.RETRIEVAL_DOCUMENT,
-});
-
 export async function ingestContent(
   text: string,
   metadata: { url: string; title: string; length: number; documentId: string },
@@ -110,11 +103,13 @@ export async function ingestContent(
       });
     });
 
-    console.log(`[VECTOR-STORE] Ingesting ${chunks.length} chunks into namespace: ${namespace}`);
+    console.log(
+      `[VECTOR-STORE] Ingesting ${chunks.length} chunks into namespace: ${namespace} with ${EMBEDDING_MODEL}`
+    );
 
     // LangChain's PineconeStore provides a high-level API for upserting
     console.log(`[VECTOR-STORE] Starting Pinecone upsert for namespace: ${namespace}...`);
-    await PineconeStore.fromDocuments(chunks, embeddings, {
+    await PineconeStore.fromDocuments(chunks, documentEmbeddings, {
       pineconeIndex: index,
       namespace,
       textKey: "text",

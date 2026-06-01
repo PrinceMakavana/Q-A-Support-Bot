@@ -31,7 +31,8 @@ export async function POST(req: Request) {
       documentId: docId,
     };
 
-    const result = await ingestContent(text, metadata, namespace);
+    const textData = text + JSON.stringify(metadata);
+    const result = await ingestContent(textData, metadata, namespace);
 
     return NextResponse.json({
       namespace,

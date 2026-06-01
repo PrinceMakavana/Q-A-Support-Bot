@@ -10,7 +10,7 @@ A support chatbot built with **Retrieval Augmented Generation (RAG)**. Crawl a w
 ## Tech Stack
 
 - **Framework:** [Next.js](https://nextjs.org/) 15 (App Router)
-- **AI & Embeddings:** [Google Gemini](https://ai.google.dev/) (`text-embedding-004`, `gemini-2.5-flash-lite`)
+- **AI & Embeddings:** [Google Gemini](https://ai.google.dev/) (`gemini-embedding-001`, `gemini-2.5-flash-lite`)
 - **Orchestration:** [LangChain](https://js.langchain.com/) (text splitters, Pinecone integration)
 - **Vector Store:** [Pinecone](https://www.pinecone.io/)
 - **Crawling:** [Playwright](https://playwright.dev/) (JS-rendered pages)
@@ -46,7 +46,7 @@ src/
 ### Prerequisites
 
 - Node.js 18+
-- [Pinecone](https://www.pinecone.io/) API key and an index (e.g. 1 dimension matching `text-embedding-004`)
+- [Pinecone](https://www.pinecone.io/) API key and a 3072-dimension index matching `gemini-embedding-001`
 - [Google AI](https://ai.google.dev/) (Gemini) API key
 
 ### Installation
@@ -61,6 +61,7 @@ src/
 
    ```env
    GOOGLE_API_KEY=your_gemini_key
+   GOOGLE_EMBEDDING_MODEL=gemini-embedding-001
    PINECONE_API_KEY=your_pinecone_key
    PINECONE_INDEX=your_index_name
    ```

@@ -1,17 +1,11 @@
 import { NextResponse } from "next/server";
 import { Pinecone } from "@pinecone-database/pinecone";
-import { GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI } from "@langchain/google-genai";
+import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { PineconeStore } from "@langchain/pinecone";
-import { TaskType } from "@google/generative-ai";
+import { queryEmbeddings } from "@/lib/embeddings";
 
 const pinecone = new Pinecone({
   apiKey: process.env.PINECONE_API_KEY!,
-});
-
-const embeddings = new GoogleGenerativeAIEmbeddings({
-  apiKey: process.env.GOOGLE_API_KEY!,
-  modelName: "text-embedding-004",
-  taskType: TaskType.RETRIEVAL_QUERY,
 });
 
 const model = new ChatGoogleGenerativeAI({
@@ -36,7 +30,7 @@ export async function POST(req: Request) {
     const index = pinecone.Index(process.env.PINECONE_INDEX!);
     
     // Initialize PineconeStore from existing index
-    const vectorStore = await PineconeStore.fromExistingIndex(embeddings, {
+    const vectorStore = await PineconeStore.fromExistingIndex(queryEmbeddings, {
       pineconeIndex: index,
       namespace,
       textKey: "text",
