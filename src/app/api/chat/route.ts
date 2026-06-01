@@ -2,20 +2,28 @@ import { NextResponse } from "next/server";
 import { Pinecone } from "@pinecone-database/pinecone";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { PineconeStore } from "@langchain/pinecone";
-import { queryEmbeddings } from "@/lib/embeddings";
+import { getQueryEmbeddings } from "@/lib/embeddings";
 import { configDotenv } from "dotenv";
 configDotenv();
+
+function requireEnv(name: string) {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(`Missing ${name} environment variable`);
+  }
+  return value;
+}
 
 export async function POST(req: Request) {
   try {
     const { question, namespace, docId } = await req.json();
 
     const pinecone = new Pinecone({
-      apiKey: process.env.PINECONE_API_KEY!,
+      apiKey: requireEnv("PINECONE_API_KEY"),
     });
 
     const model = new ChatGoogleGenerativeAI({
-      apiKey: process.env.GOOGLE_API_KEY!,
+      apiKey: requireEnv("GOOGLE_API_KEY"),
       model: "gemini-2.5-flash-lite",
       temperature: 0.2,
     });
@@ -29,10 +37,10 @@ export async function POST(req: Request) {
 
     console.log(`[CHAT] Querying namespace: ${namespace} for docId: ${docId}`);
 
-    const index = pinecone.Index(process.env.PINECONE_INDEX!);
+    const index = pinecone.Index(requireEnv("PINECONE_INDEX"));
 
     // Initialize PineconeStore from existing index
-    const vectorStore = await PineconeStore.fromExistingIndex(queryEmbeddings, {
+    const vectorStore = await PineconeStore.fromExistingIndex(getQueryEmbeddings(), {
       pineconeIndex: index,
       namespace,
       textKey: "text",

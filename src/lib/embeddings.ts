@@ -20,16 +20,28 @@ class StrictGoogleGenerativeAIEmbeddings extends GoogleGenerativeAIEmbeddings {
   }
 }
 
-export const documentEmbeddings = new StrictGoogleGenerativeAIEmbeddings({
-  apiKey: process.env.GOOGLE_API_KEY!,
-  modelName: EMBEDDING_MODEL,
-  taskType: TaskType.RETRIEVAL_DOCUMENT,
-});
+function getGoogleApiKey() {
+  const apiKey = process.env.GOOGLE_API_KEY;
+  if (!apiKey) {
+    throw new Error("Missing GOOGLE_API_KEY environment variable");
+  }
+  return apiKey;
+}
 
-export const queryEmbeddings = new StrictGoogleGenerativeAIEmbeddings({
-  apiKey: process.env.GOOGLE_API_KEY!,
-  modelName: EMBEDDING_MODEL,
-  taskType: TaskType.RETRIEVAL_QUERY,
-});
+export function getDocumentEmbeddings() {
+  return new StrictGoogleGenerativeAIEmbeddings({
+    apiKey: getGoogleApiKey(),
+    modelName: EMBEDDING_MODEL,
+    taskType: TaskType.RETRIEVAL_DOCUMENT,
+  });
+}
+
+export function getQueryEmbeddings() {
+  return new StrictGoogleGenerativeAIEmbeddings({
+    apiKey: getGoogleApiKey(),
+    modelName: EMBEDDING_MODEL,
+    taskType: TaskType.RETRIEVAL_QUERY,
+  });
+}
 
 export { EMBEDDING_MODEL };

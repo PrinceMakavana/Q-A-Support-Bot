@@ -2,7 +2,7 @@ import { Pinecone } from "@pinecone-database/pinecone";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { Document } from "@langchain/core/documents";
 import { PineconeStore } from "@langchain/pinecone";
-import { documentEmbeddings, EMBEDDING_MODEL } from "@/lib/embeddings";
+import { getDocumentEmbeddings, EMBEDDING_MODEL } from "@/lib/embeddings";
 
 /** Pinecone metadata size limit per vector (40 KB). Use a safe value to leave headroom. */
 const PINECONE_METADATA_LIMIT_BYTES = 40000;
@@ -61,11 +61,20 @@ function capMetadataSize(
   return result;
 }
 
-const pinecone = new Pinecone({
-  apiKey: process.env.PINECONE_API_KEY!,
-});
+function getPineconeIndex() {
+  const apiKey = process.env.PINECONE_API_KEY;
+  const indexName = process.env.PINECONE_INDEX;
 
-const index = pinecone.Index(process.env.PINECONE_INDEX!);
+  if (!apiKey) {
+    throw new Error("Missing PINECONE_API_KEY environment variable");
+  }
+  if (!indexName) {
+    throw new Error("Missing PINECONE_INDEX environment variable");
+  }
+
+  const pinecone = new Pinecone({ apiKey });
+  return pinecone.Index(indexName);
+}
 
 export async function ingestContent(
   text: string,
@@ -109,8 +118,8 @@ export async function ingestContent(
 
     // LangChain's PineconeStore provides a high-level API for upserting
     console.log(`[VECTOR-STORE] Starting Pinecone upsert for namespace: ${namespace}...`);
-    await PineconeStore.fromDocuments(chunks, documentEmbeddings, {
-      pineconeIndex: index,
+    await PineconeStore.fromDocuments(chunks, getDocumentEmbeddings(), {
+      pineconeIndex: getPineconeIndex(),
       namespace,
       textKey: "text",
     });
