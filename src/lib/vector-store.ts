@@ -79,7 +79,8 @@ function getPineconeIndex() {
 export async function ingestContent(
   text: string,
   metadata: { url: string; title: string; length: number; documentId: string },
-  namespace: string
+  namespace: string,
+  googleApiKey: string
 ) {
   try {
     console.log(`[VECTOR-STORE] Initializing text splitter (800/100) for documentId: ${metadata.documentId}`);
@@ -118,7 +119,7 @@ export async function ingestContent(
 
     // LangChain's PineconeStore provides a high-level API for upserting
     console.log(`[VECTOR-STORE] Starting Pinecone upsert for namespace: ${namespace}...`);
-    await PineconeStore.fromDocuments(chunks, getDocumentEmbeddings(), {
+    await PineconeStore.fromDocuments(chunks, getDocumentEmbeddings(googleApiKey), {
       pineconeIndex: getPineconeIndex(),
       namespace,
       textKey: "text",

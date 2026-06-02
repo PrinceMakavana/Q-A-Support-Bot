@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Globe, Search, ArrowRight, Loader2, CheckCircle2, AlertCircle, FileText, Database, History, Trash2, MessageSquare } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
+import GeminiKeyDialog from "@/components/gemini-key-dialog";
 
 interface SiteConfig {
   indexName: string;
@@ -28,6 +29,8 @@ export default function Home() {
   const [ingesting, setIngesting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [ingestedSites, setIngestedSites] = useState<SiteConfig[]>([]);
+  const [googleApiKey, setGoogleApiKey] = useState("");
+  const [showKeyDialog, setShowKeyDialog] = useState(false);
 
   // Load ingested sites from localStorage on mount
   useEffect(() => {
@@ -39,7 +42,20 @@ export default function Home() {
         console.error("Failed to parse saved sites", e);
       }
     }
+
+    const savedGoogleApiKey = sessionStorage.getItem("qa-bot-google-api-key");
+    if (savedGoogleApiKey) {
+      setGoogleApiKey(savedGoogleApiKey);
+    } else {
+      setShowKeyDialog(true);
+    }
   }, []);
+
+  const saveGoogleApiKey = (apiKey: string) => {
+    sessionStorage.setItem("qa-bot-google-api-key", apiKey);
+    setGoogleApiKey(apiKey);
+    setShowKeyDialog(false);
+  };
 
   const handleCrawl = async () => {
     if (!url) return;
@@ -78,6 +94,14 @@ export default function Home() {
 
   const handleIngest = async () => {
     if (!crawledData) return;
+    if (!googleApiKey.trim()) {
+      setShowKeyDialog(true);
+      setError("Gemini API key is required before ingestion.");
+      toast.error("Gemini API key required", {
+        description: "Add your key so embeddings can be created with your Gemini account.",
+      });
+      return;
+    }
     console.log(`[CLIENT] Starting ingestion to Pinecone for: ${crawledData.url}`);
     setIngesting(true);
     setError(null);
@@ -87,7 +111,10 @@ export default function Home() {
       const response = await fetch("/api/ingest", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(crawledData),
+        body: JSON.stringify({
+          ...crawledData,
+          googleApiKey: googleApiKey.trim(),
+        }),
       });
 
       console.log(`[CLIENT] Ingest response status: ${response.status}`);
@@ -138,6 +165,8 @@ export default function Home() {
 
   return (
     <div className="relative h-screen  flex flex-col items-center p-6 sm:p-24">
+      <GeminiKeyDialog open={showKeyDialog} onSave={saveGoogleApiKey} />
+
       {/* Background decoration */}
       <div className="fixed inset-0 grid-bg opacity-50 z-[-2]" />
       <div className="glow-effect top-1/4 -left-1/4 opacity-30" />
@@ -334,7 +363,7 @@ export default function Home() {
                       </a>
                     </div>
                     <Link
-                      href={`/chat?namespace=${site.namespace}&siteName=${encodeURIComponent(site.siteName)}&docId=${site.docId}`}
+                      href={`/chat?namespace=${site.namespace}&siteName=${encodeURIComponent(site.siteName)}&docId=${site.docId}&url=${encodeURIComponent(site.url)}`}
                       className="p-2 text-foreground/20 hover:text-accent transition-colors"
                       title="Chat with this site"
                     >

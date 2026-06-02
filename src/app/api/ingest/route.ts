@@ -5,12 +5,21 @@ configDotenv();
 
 export async function POST(req: Request) {
   try {
-    const { url, title, text, length } = await req.json();
+    const { url, title, text, length, googleApiKey: rawGoogleApiKey } = await req.json();
+    const googleApiKey =
+      typeof rawGoogleApiKey === "string" ? rawGoogleApiKey.trim() : "";
 
     if (!url || !text) {
       console.error("[INGEST] Error: URL or Text missing in request body");
       return NextResponse.json(
         { error: "URL and text are required for ingestion" },
+        { status: 400 }
+      );
+    }
+    if (!googleApiKey) {
+      console.error("[INGEST] Error: Google API key missing in request body");
+      return NextResponse.json(
+        { error: "Gemini API key is required for ingestion" },
         { status: 400 }
       );
     }
@@ -34,7 +43,7 @@ export async function POST(req: Request) {
     };
 
     const textData = text + JSON.stringify(metadata);
-    const result = await ingestContent(textData, metadata, namespace);
+    const result = await ingestContent(textData, metadata, namespace, googleApiKey);
 
     return NextResponse.json({
       namespace,

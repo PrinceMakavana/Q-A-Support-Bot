@@ -16,17 +16,9 @@ function requireEnv(name: string) {
 
 export async function POST(req: Request) {
   try {
-    const { question, namespace, docId } = await req.json();
-
-    const pinecone = new Pinecone({
-      apiKey: requireEnv("PINECONE_API_KEY"),
-    });
-
-    const model = new ChatGoogleGenerativeAI({
-      apiKey: requireEnv("GOOGLE_API_KEY"),
-      model: "gemini-3.1-flash-lite-preview",
-      temperature: 0.2,
-    });
+    const { question, namespace, docId, googleApiKey: rawGoogleApiKey } = await req.json();
+    const googleApiKey =
+      typeof rawGoogleApiKey === "string" ? rawGoogleApiKey.trim() : "";
 
     if (!question || !namespace || !docId) {
       return NextResponse.json(
@@ -34,13 +26,29 @@ export async function POST(req: Request) {
         { status: 400 },
       );
     }
+    if (!googleApiKey) {
+      return NextResponse.json(
+        { error: "Gemini API key is required for chat" },
+        { status: 400 },
+      );
+    }
+
+    const pinecone = new Pinecone({
+      apiKey: requireEnv("PINECONE_API_KEY"),
+    });
+
+    const model = new ChatGoogleGenerativeAI({
+      apiKey: googleApiKey,
+      model: "gemini-3.1-flash-lite-preview",
+      temperature: 0.2,
+    });
 
     console.log(`[CHAT] Querying namespace: ${namespace} for docId: ${docId}`);
 
     const index = pinecone.Index(requireEnv("PINECONE_INDEX"));
 
     // Initialize PineconeStore from existing index
-    const vectorStore = await PineconeStore.fromExistingIndex(getQueryEmbeddings(), {
+    const vectorStore = await PineconeStore.fromExistingIndex(getQueryEmbeddings(googleApiKey), {
       pineconeIndex: index,
       namespace,
       textKey: "text",

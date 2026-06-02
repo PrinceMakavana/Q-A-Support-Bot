@@ -11,6 +11,7 @@ function ChatContent() {
     const namespace = searchParams.get("namespace");
     const docId = searchParams.get("docId");
     const siteName = searchParams.get("siteName");
+    const siteUrl = searchParams.get("url");
 
     if (!namespace || !docId) {
         return (
@@ -54,6 +55,7 @@ function ChatContent() {
                 namespace={namespace}
                 docId={docId}
                 siteName={siteName || "Untitled knowledge base"}
+                siteUrl={siteUrl || undefined}
             />
         </div>
     );

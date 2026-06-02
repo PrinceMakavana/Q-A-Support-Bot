@@ -9,7 +9,7 @@ class StrictGoogleGenerativeAIEmbeddings extends GoogleGenerativeAIEmbeddings {
     const vector = await super.embedQuery(document);
     if (vector.length === 0) {
       throw new Error(
-        `Google embedding model "${this.modelName}" returned an empty vector. Check GOOGLE_API_KEY, GOOGLE_EMBEDDING_MODEL, and model access.`
+        `Google embedding model "${this.modelName}" returned an empty vector. Check the provided Gemini API key, GOOGLE_EMBEDDING_MODEL, and model access.`
       );
     }
     return vector;
@@ -20,25 +20,24 @@ class StrictGoogleGenerativeAIEmbeddings extends GoogleGenerativeAIEmbeddings {
   }
 }
 
-function getGoogleApiKey() {
-  const apiKey = process.env.GOOGLE_API_KEY;
+function getGoogleApiKey(apiKey: string) {
   if (!apiKey) {
-    throw new Error("Missing GOOGLE_API_KEY environment variable");
+    throw new Error("Missing Google API key");
   }
   return apiKey;
 }
 
-export function getDocumentEmbeddings() {
+export function getDocumentEmbeddings(apiKey: string) {
   return new StrictGoogleGenerativeAIEmbeddings({
-    apiKey: getGoogleApiKey(),
+    apiKey: getGoogleApiKey(apiKey),
     modelName: EMBEDDING_MODEL,
     taskType: TaskType.RETRIEVAL_DOCUMENT,
   });
 }
 
-export function getQueryEmbeddings() {
+export function getQueryEmbeddings(apiKey: string) {
   return new StrictGoogleGenerativeAIEmbeddings({
-    apiKey: getGoogleApiKey(),
+    apiKey: getGoogleApiKey(apiKey),
     modelName: EMBEDDING_MODEL,
     taskType: TaskType.RETRIEVAL_QUERY,
   });

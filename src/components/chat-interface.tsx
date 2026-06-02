@@ -1,21 +1,25 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Send, Loader2, Trash2, Bot, User, MessageSquare } from "lucide-react";
+import { Send, Loader2, Trash2, Bot, User, MessageSquare, ExternalLink } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { ChatMessage } from "@/lib/types";
+import GeminiKeyDialog from "@/components/gemini-key-dialog";
 
 interface ChatInterfaceProps {
     namespace: string;
     docId: string;
     siteName: string;
+    siteUrl?: string;
 }
 
-export default function ChatInterface({ namespace, docId, siteName }: ChatInterfaceProps) {
+export default function ChatInterface({ namespace, docId, siteName, siteUrl }: ChatInterfaceProps) {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [input, setInput] = useState("");
     const [loading, setLoading] = useState(false);
+    const [googleApiKey, setGoogleApiKey] = useState("");
+    const [showKeyDialog, setShowKeyDialog] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
 
     // Load chat history from localStorage
@@ -28,7 +32,19 @@ export default function ChatInterface({ namespace, docId, siteName }: ChatInterf
                 console.error("Failed to parse chat history", e);
             }
         }
+        const savedGoogleApiKey = sessionStorage.getItem("qa-bot-google-api-key");
+        if (savedGoogleApiKey) {
+            setGoogleApiKey(savedGoogleApiKey);
+        } else {
+            setShowKeyDialog(true);
+        }
     }, [docId]);
+
+    const saveGoogleApiKey = (apiKey: string) => {
+        sessionStorage.setItem("qa-bot-google-api-key", apiKey);
+        setGoogleApiKey(apiKey);
+        setShowKeyDialog(false);
+    };
 
     // Save chat history to localStorage
     useEffect(() => {
@@ -46,6 +62,10 @@ export default function ChatInterface({ namespace, docId, siteName }: ChatInterf
 
     const handleSend = async () => {
         if (!input.trim() || loading) return;
+        if (!googleApiKey.trim()) {
+            setShowKeyDialog(true);
+            return;
+        }
 
         const userMessage: ChatMessage = {
             id: crypto.randomUUID(),
@@ -66,6 +86,7 @@ export default function ChatInterface({ namespace, docId, siteName }: ChatInterf
                     question: userMessage.content,
                     namespace,
                     docId,
+                    googleApiKey: googleApiKey.trim(),
                 }),
             });
 
@@ -88,7 +109,7 @@ export default function ChatInterface({ namespace, docId, siteName }: ChatInterf
             const errorMessage: ChatMessage = {
                 id: crypto.randomUUID(),
                 role: "assistant",
-                content: "Sorry, I encountered an error. Please try again.",
+                content: error instanceof Error ? error.message : "Sorry, I encountered an error. Please try again.",
                 timestamp: new Date().toISOString(),
             };
             setMessages((prev) => [...prev, errorMessage]);
@@ -106,24 +127,44 @@ export default function ChatInterface({ namespace, docId, siteName }: ChatInterf
 
     return (
         <div className="flex flex-col h-full glass-card rounded-3xl overflow-hidden border border-white/10 shadow-2xl transition-all">
+            <GeminiKeyDialog open={showKeyDialog} onSave={saveGoogleApiKey} />
+
             {/* Header */}
-            <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/5">
-                <div className="flex items-center gap-4">
-                    <div className="p-3 bg-accent/10 rounded-2xl text-accent">
-                        <Bot size={24} />
+            <div className="p-6 border-b border-white/5 bg-white/5">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-accent/10 rounded-2xl text-accent">
+                            <Bot size={24} />
+                        </div>
+                        <div>
+                            <h2 className="font-bold text-lg text-foreground">{siteName}</h2>
+                            <p className="text-xs text-foreground/40 uppercase tracking-widest font-medium">Knowledge Assistant</p>
+                        </div>
                     </div>
-                    <div>
-                        <h2 className="font-bold text-lg text-foreground">{siteName}</h2>
-                        <p className="text-xs text-foreground/40 uppercase tracking-widest font-medium">Knowledge Assistant</p>
+                    <div className="flex items-center gap-2">
+                        {siteUrl && (
+                            <a
+                                href={siteUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-2 rounded-xl border border-white/5 bg-white/5 px-3 py-2 text-xs font-medium text-foreground/50 transition-all hover:border-accent/30 hover:text-accent"
+                                title={siteUrl}
+                            >
+                                <ExternalLink size={16} />
+                                <span className="hidden max-w-[180px] truncate sm:inline">
+                                    Open Site
+                                </span>
+                            </a>
+                        )}
+                        <button
+                            onClick={clearHistory}
+                            className="p-3 text-foreground/20 hover:text-red-500 hover:bg-red-500/5 rounded-xl transition-all"
+                            title="Clear chat history"
+                        >
+                            <Trash2 size={20} />
+                        </button>
                     </div>
                 </div>
-                <button
-                    onClick={clearHistory}
-                    className="p-3 text-foreground/20 hover:text-red-500 hover:bg-red-500/5 rounded-xl transition-all"
-                    title="Clear chat history"
-                >
-                    <Trash2 size={20} />
-                </button>
             </div>
 
             {/* Messages */}
@@ -205,7 +246,7 @@ export default function ChatInterface({ namespace, docId, siteName }: ChatInterf
                     />
                     <button
                         type="submit"
-                        disabled={!input.trim() || loading}
+                        disabled={!input.trim() || loading || !googleApiKey.trim()}
                         className="absolute right-3 top-1/2 -translate-y-1/2 p-3 bg-accent hover:bg-accent/90 disabled:opacity-30 disabled:hover:scale-100 text-white rounded-xl transition-all hover:scale-105 active:scale-95 shadow-lg shadow-accent/20"
                     >
                         {loading ? <Loader2 size={20} className="animate-spin" /> : <Send size={20} />}
