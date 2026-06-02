@@ -1,0 +1,36 @@
+# Q&A Support Bot
+
+> A Retrieval Augmented Generation (RAG) support chatbot that turns website content into a searchable knowledge base.
+
+## Overview
+
+Q&A Support Bot crawls a website, extracts readable content, chunks and embeds that content, stores it in Pinecone, and lets users ask questions with answers grounded in retrieved context.
+
+## Key Features
+
+- Crawl websites, including JavaScript-rendered pages.
+- Optionally read sitemap.xml and llms.txt from crawled sites.
+- Split website text into searchable chunks.
+- Generate embeddings with Google Gemini.
+- Store and query vectors in Pinecone.
+- Chat with ingested website content using Gemini.
+- Save ingested sites and chat history locally in the browser.
+
+## Tech Stack
+
+- Next.js 15
+- React 19
+- Google Gemini
+- LangChain
+- Pinecone
+- Playwright
+- Tailwind CSS
+
+## Important Pages
+
+- Home: /
+- Chat: /chat
+
+## Repository Information
+
+This project is intended as a full-stack RAG application for learning and demonstrating website-based knowledge retrieval and AI-powered support chat.
