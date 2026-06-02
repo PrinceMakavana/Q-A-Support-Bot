@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Send, Loader2, Trash2, ArrowLeft, Bot, User, MessageSquare } from "lucide-react";
+import { Send, Loader2, Trash2, Bot, User, MessageSquare } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { ChatMessage } from "@/lib/types";
 
 interface ChatInterfaceProps {
@@ -154,7 +156,18 @@ export default function ChatInterface({ namespace, docId, siteName }: ChatInterf
                                     ? "bg-accent text-white shadow-lg shadow-accent/20 rounded-tr-none"
                                     : "glass text-foreground/80 rounded-tl-none border border-white/5"
                                     }`}>
-                                    {msg.content}
+                                    {msg.role === "assistant" ? (
+                                        <div className="markdown-content">
+                                            <ReactMarkdown
+                                                remarkPlugins={[remarkGfm]}
+                                                skipHtml
+                                            >
+                                                {msg.content}
+                                            </ReactMarkdown>
+                                        </div>
+                                    ) : (
+                                        <span className="whitespace-pre-wrap break-words">{msg.content}</span>
+                                    )}
                                 </div>
                                 <p className="text-[10px] text-foreground/20 font-mono">
                                     {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
