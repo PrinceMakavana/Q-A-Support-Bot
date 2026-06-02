@@ -292,9 +292,9 @@ export default function Home() {
           <div className="flex items-center gap-8 text-xs font-mono text-foreground/30 mt-12">
             <div className="flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-green-500/50"></span>
-              READY TO INGEST
+              READY TO INGEST WITH PLAYWRIGHT
             </div>
-            <div>GEMINI 1.5 PRO</div>
+            <div>GEMINI</div>
             <div>PINECONE SERVERLESS</div>
           </div>
         )}
