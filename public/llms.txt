@@ -23,7 +23,7 @@ Q&A Support Bot crawls a website, extracts readable content, chunks and embeds t
 - Google Gemini
 - LangChain
 - Pinecone
-- Playwright
+- Browserbase
 - Tailwind CSS
 
 ## Important Pages

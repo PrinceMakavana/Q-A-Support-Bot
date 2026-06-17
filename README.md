@@ -13,12 +13,12 @@ A support chatbot built with **Retrieval Augmented Generation (RAG)**. Crawl a w
 - **AI & Embeddings:** [Google Gemini](https://ai.google.dev/) (`gemini-embedding-001`, `gemini-2.5-flash-lite`)
 - **Orchestration:** [LangChain](https://js.langchain.com/) (text splitters, Pinecone integration)
 - **Vector Store:** [Pinecone](https://www.pinecone.io/)
-- **Crawling:** [Playwright](https://playwright.dev/) (JS-rendered pages)
+- **Crawling:** [Browserbase](https://docs.browserbase.com/welcome/introduction) (cloud browsers for JS-rendered pages)
 - **UI:** React 19, Tailwind CSS 4, Lucide React, Sonner (toasts)
 
 ## Features
 
-- **Crawl:** Enter a URL; the app uses Playwright to fetch the page (including JS-rendered content), plus optional `sitemap.xml` and `llms.txt` in parallel.
+- **Crawl:** Enter a URL; the app uses Browserbase cloud browsers to fetch the page (including JS-rendered content), plus optional `sitemap.xml` and `llms.txt` in parallel.
 - **Ingest:** Chunk text with `RecursiveCharacterTextSplitter` (800 chars, 100 overlap), embed with Gemini, and store in Pinecone with a namespace derived from hostname + path.
 - **Chat:** For each ingested site, open a chat that queries Pinecone (top 4 chunks, filtered by document ID) and answers via Gemini, strictly from retrieved context.
 - **Local state:** Ingested sites and per-doc chat history are stored in `localStorage` for quick access.
@@ -31,12 +31,13 @@ src/
 │   ├── page.tsx              # Home: URL input, crawl, ingest, list of ingested sites
 │   ├── chat/page.tsx         # Chat UI (namespace, docId, siteName via query params)
 │   └── api/
-│       ├── crawl/route.ts    # POST /api/crawl — Playwright crawl + sitemap/llms.txt
+│       ├── crawl/route.ts    # POST /api/crawl — Browserbase crawl + sitemap/llms.txt
 │       ├── ingest/route.ts   # POST /api/ingest — chunk, embed, upsert to Pinecone
 │       └── chat/route.ts     # POST /api/chat — RAG query (retrieve + Gemini)
 ├── components/
 │   └── chat-interface.tsx    # Chat messages, input, history persistence
 └── lib/
+    ├── browserbase-crawl.ts # Browserbase session + CDP page crawl
     ├── vector-store.ts      # Chunking, metadata capping, Pinecone upsert
     └── types.ts             # Shared types (e.g. ChatMessage)
 ```
@@ -47,6 +48,7 @@ src/
 
 - Node.js 18+
 - [Pinecone](https://www.pinecone.io/) API key and a 3072-dimension index matching `gemini-embedding-001`
+- [Browserbase](https://www.browserbase.com/) API key for cloud browser crawling
 - [Google AI](https://ai.google.dev/) (Gemini) API key
 
 ### Installation
@@ -64,6 +66,7 @@ src/
    GOOGLE_EMBEDDING_MODEL=gemini-embedding-001
    PINECONE_API_KEY=your_pinecone_key
    PINECONE_INDEX=your_index_name
+   BROWSERBASE_API_KEY=your_browserbase_key
    ```
 
 3. Run the dev server:
@@ -87,7 +90,7 @@ src/
 
 | Endpoint           | Method | Body (JSON)                    | Description |
 |--------------------|--------|--------------------------------|-------------|
-| `/api/crawl`       | POST   | `{ url: string }`              | Crawl URL with Playwright; return `{ url, title, text, length, sitemap?, llm? }`. |
+| `/api/crawl`       | POST   | `{ url: string }`              | Crawl URL with Browserbase; return `{ url, title, text, length, sitemap?, llm? }`. |
 | `/api/ingest`      | POST   | `{ url, title?, text, length? }` | Chunk, embed, upsert to Pinecone; return `{ namespace, docId, indexName, chunkCount }`. |
 | `/api/chat`        | POST   | `{ question, namespace, docId }` | RAG: retrieve top 4 chunks (by docId), then answer with Gemini. Returns `{ answer }`. |
 
@@ -98,6 +101,8 @@ src/
 | `GOOGLE_API_KEY`   | Yes      | Google AI (Gemini) API key           |
 | `PINECONE_API_KEY` | Yes      | Pinecone API key                     |
 | `PINECONE_INDEX`   | Yes      | Name of the Pinecone index to use    |
+| `BROWSERBASE_API_KEY` | Yes   | Browserbase API key for cloud crawling |
+| `BROWSERBASE_PROJECT_ID` | No | Optional Browserbase project ID (inferred from API key if omitted) |
 
 ## License
 

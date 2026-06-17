@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { chromium } from "playwright";
 import { configDotenv } from "dotenv";
+import { crawlWithBrowserbase } from "@/lib/browserbase-crawl";
+
 configDotenv();
 
 export async function POST(req: Request) {
@@ -23,24 +24,6 @@ export async function POST(req: Request) {
       }
     }
 
-    async function crawlWithJS(url: string) {
-      const browser = await chromium.launch();
-      const page = await browser.newPage();
-
-      await page.goto(url, { waitUntil: "networkidle" });
-
-      const text = await page.evaluate(() => {
-        return document.body.innerText;
-      });
-
-      const title = await page.evaluate(() => {
-        return document.title;
-      });
-
-      await browser.close();
-      return { text, title };
-    }
-
     console.log(`[CRAWL] Starting crawl for: ${url}`);
     const { origin } = new URL(url);
     const sitemapUrl = `${origin}/sitemap.xml`;
@@ -49,12 +32,11 @@ export async function POST(req: Request) {
     console.log(`[CRAWL] Derived Sitemap URL: ${sitemapUrl}`);
     console.log(`[CRAWL] Derived LLM TXT URL: ${llmTxtUrl}`);
 
-    // Main page with Playwright + sitemap and llm.txt in parallel (fetch only)
     console.log(
       "[CRAWL] Triggering parallel fetch for page content, sitemap, and llm.txt...",
     );
     const [pageResult, settled] = await Promise.all([
-      crawlWithJS(url),
+      crawlWithBrowserbase(url),
       Promise.allSettled([fetchUrlText(sitemapUrl), fetchUrlText(llmTxtUrl)]),
     ]);
     console.log("[CRAWL] Parallel fetch completed.");
@@ -77,7 +59,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "No content found" }, { status: 404 });
     }
 
-    // Clean up whitespace
     const cleanedText = text.replace(/\s+/g, " ").replace(/\n+/g, " ").trim();
 
     const payload: Record<string, unknown> = {
