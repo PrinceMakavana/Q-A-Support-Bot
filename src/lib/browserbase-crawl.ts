@@ -1,11 +1,11 @@
-import { chromium } from "playwright-core";
-import Browserbase from "@browserbasehq/sdk";
-
 export async function crawlWithBrowserbase(url: string) {
   const apiKey = process.env.BROWSERBASE_API_KEY;
   if (!apiKey) {
     throw new Error("BROWSERBASE_API_KEY is not configured");
   }
+
+  const { chromium } = await import("playwright-core");
+  const { default: Browserbase } = await import("@browserbasehq/sdk");
 
   const bb = new Browserbase({ apiKey });
   const projectId = process.env.BROWSERBASE_PROJECT_ID;

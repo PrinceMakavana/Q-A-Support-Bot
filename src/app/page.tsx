@@ -72,11 +72,33 @@ export default function Home() {
         body: JSON.stringify({ url }),
       });
 
-      // console.log(`[CLIENT] Crawl response status: ${response.status}`);
-      const data = await response.json();
+      const raw = await response.text();
+      let data: {
+        url: string;
+        title: string;
+        text: string;
+        length: number;
+        sitemap?: string;
+        llm?: string;
+        error?: string;
+        details?: string;
+      };
+      try {
+        data = JSON.parse(raw);
+      } catch {
+        throw new Error(
+          response.ok
+            ? "Server returned an invalid response."
+            : `Crawl failed (${response.status}). The server may be missing env vars or needs a redeploy.`,
+        );
+      }
 
       if (!response.ok) {
-        throw new Error(data.error || "Something went wrong while crawling.");
+        throw new Error(
+          data.details
+            ? `${data.error ?? "Crawl failed"}: ${data.details}`
+            : data.error || "Something went wrong while crawling.",
+        );
       }
 
       // console.log("[CLIENT] Crawl successful. Data received:", data);

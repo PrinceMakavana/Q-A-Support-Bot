@@ -1,8 +1,30 @@
 import { NextResponse } from "next/server";
 import { configDotenv } from "dotenv";
 import { crawlWithBrowserbase } from "@/lib/browserbase-crawl";
+import { crawlWithFetch } from "@/lib/fetch-crawl";
 
 configDotenv();
+
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
+async function crawlPage(url: string) {
+  if (process.env.BROWSERBASE_API_KEY) {
+    try {
+      console.log("[CRAWL] Attempting Browserbase crawl...");
+      return await crawlWithBrowserbase(url);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Browserbase crawl failed";
+      console.warn(`[CRAWL] Browserbase failed, falling back to fetch: ${message}`);
+    }
+  } else {
+    console.warn("[CRAWL] BROWSERBASE_API_KEY not set, using fetch fallback");
+  }
+
+  console.log("[CRAWL] Attempting fetch-based crawl...");
+  return crawlWithFetch(url);
+}
 
 export async function POST(req: Request) {
   try {
@@ -36,7 +58,7 @@ export async function POST(req: Request) {
       "[CRAWL] Triggering parallel fetch for page content, sitemap, and llm.txt...",
     );
     const [pageResult, settled] = await Promise.all([
-      crawlWithBrowserbase(url),
+      crawlPage(url),
       Promise.allSettled([fetchUrlText(sitemapUrl), fetchUrlText(llmTxtUrl)]),
     ]);
     console.log("[CRAWL] Parallel fetch completed.");
