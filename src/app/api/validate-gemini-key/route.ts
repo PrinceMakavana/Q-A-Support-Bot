@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 const GEMINI_MODELS_URL = "https://generativelanguage.googleapis.com/v1beta/models";
 
 export async function POST(req: Request) {

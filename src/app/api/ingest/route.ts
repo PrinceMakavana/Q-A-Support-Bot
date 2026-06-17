@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
-import { ingestContent } from "@/lib/vector-store";
 import { configDotenv } from "dotenv";
 configDotenv();
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 export async function POST(req: Request) {
   try {
+    const { ingestContent } = await import("@/lib/vector-store");
     const { url, title, text, length, googleApiKey: rawGoogleApiKey } = await req.json();
     const googleApiKey =
       typeof rawGoogleApiKey === "string" ? rawGoogleApiKey.trim() : "";

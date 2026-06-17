@@ -1,5 +1,5 @@
 import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
-import { TaskType } from "@google/generative-ai";
+import type { TaskType } from "@google/generative-ai";
 
 const EMBEDDING_MODEL =
   process.env.GOOGLE_EMBEDDING_MODEL || "gemini-embedding-001";
@@ -31,7 +31,7 @@ export function getDocumentEmbeddings(apiKey: string) {
   return new StrictGoogleGenerativeAIEmbeddings({
     apiKey: getGoogleApiKey(apiKey),
     modelName: EMBEDDING_MODEL,
-    taskType: TaskType.RETRIEVAL_DOCUMENT,
+    taskType: "RETRIEVAL_DOCUMENT" as TaskType,
   });
 }
 
@@ -39,7 +39,7 @@ export function getQueryEmbeddings(apiKey: string) {
   return new StrictGoogleGenerativeAIEmbeddings({
     apiKey: getGoogleApiKey(apiKey),
     modelName: EMBEDDING_MODEL,
-    taskType: TaskType.RETRIEVAL_QUERY,
+    taskType: "RETRIEVAL_QUERY" as TaskType,
   });
 }
 

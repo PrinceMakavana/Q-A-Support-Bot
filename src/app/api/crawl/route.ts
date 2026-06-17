@@ -1,17 +1,17 @@
 import { NextResponse } from "next/server";
 import { configDotenv } from "dotenv";
-import { crawlWithBrowserbase } from "@/lib/browserbase-crawl";
-import { crawlWithFetch } from "@/lib/fetch-crawl";
 
 configDotenv();
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 async function crawlPage(url: string) {
   if (process.env.BROWSERBASE_API_KEY) {
     try {
       console.log("[CRAWL] Attempting Browserbase crawl...");
+      const { crawlWithBrowserbase } = await import("@/lib/browserbase-crawl");
       return await crawlWithBrowserbase(url);
     } catch (error) {
       const message =
@@ -23,6 +23,7 @@ async function crawlPage(url: string) {
   }
 
   console.log("[CRAWL] Attempting fetch-based crawl...");
+  const { crawlWithFetch } = await import("@/lib/fetch-crawl");
   return crawlWithFetch(url);
 }
 

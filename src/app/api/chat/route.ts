@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { Pinecone } from "@pinecone-database/pinecone";
-import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
-import { PineconeStore } from "@langchain/pinecone";
-import { getQueryEmbeddings } from "@/lib/embeddings";
 import { configDotenv } from "dotenv";
+
 configDotenv();
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 function requireEnv(name: string) {
   const value = process.env[name];
@@ -16,7 +16,13 @@ function requireEnv(name: string) {
 
 export async function POST(req: Request) {
   try {
-    const { question, namespace, docId, googleApiKey: rawGoogleApiKey } = await req.json();
+    const { Pinecone } = await import("@pinecone-database/pinecone");
+    const { ChatGoogleGenerativeAI } = await import("@langchain/google-genai");
+    const { PineconeStore } = await import("@langchain/pinecone");
+    const { getQueryEmbeddings } = await import("@/lib/embeddings");
+
+    const { question, namespace, docId, googleApiKey: rawGoogleApiKey } =
+      await req.json();
     const googleApiKey =
       typeof rawGoogleApiKey === "string" ? rawGoogleApiKey.trim() : "";
 
@@ -47,16 +53,15 @@ export async function POST(req: Request) {
 
     const index = pinecone.Index(requireEnv("PINECONE_INDEX"));
 
-    // Initialize PineconeStore from existing index
-    const vectorStore = await PineconeStore.fromExistingIndex(getQueryEmbeddings(googleApiKey), {
-      pineconeIndex: index,
-      namespace,
-      textKey: "text",
-    });
+    const vectorStore = await PineconeStore.fromExistingIndex(
+      getQueryEmbeddings(googleApiKey),
+      {
+        pineconeIndex: index,
+        namespace,
+        textKey: "text",
+      },
+    );
 
-    // Perform similarity search with filter
-    // NOTE: LangChain PineconeStore doesn't always handle filters perfectly in all versions
-    // but we'll try the standard filter approach.
     const results = await vectorStore.similaritySearch(question, 4, {
       documentId: docId,
     });
